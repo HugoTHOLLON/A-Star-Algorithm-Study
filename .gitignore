@@ -1,0 +1,7 @@
+# Ignore data files
+*.csv
+*.csv.gz
+*.zip
+
+# Ignore the virtual environment
+.venv
