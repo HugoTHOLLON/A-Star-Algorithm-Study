@@ -14,4 +14,12 @@ python3 -m venv .venv
 pip install pandas pandas-stubs
 
 pip install haversine
+
+pip install osmnx
+
+pip install scikit-learn
+
+pip install matplotlib
+
+pip install types-networkx
 ```

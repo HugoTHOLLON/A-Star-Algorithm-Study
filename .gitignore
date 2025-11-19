@@ -9,3 +9,4 @@
 # Ignore pychache
 __pycache__
 .mypy_cache
+cache
