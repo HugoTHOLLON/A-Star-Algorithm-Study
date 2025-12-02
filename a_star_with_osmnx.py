@@ -115,20 +115,38 @@ def reconstruct_path(came_from, current):
     return path[::-1]
 
 
-def astar_visual(G, start, goal):
-    global heuristic_file
+def astar_visual(G, start, goal) -> list | None:
+    """Executes the A* algorithm while displaying it in a matplotlib graph.
 
-    open_set = []
+    Args:
+        G (MultiDiGraph): graph containing all the nodes and relationships.
+        start (int): ID of the start node.
+        goal (int): ID of the goal node.
+
+    Returns:
+        list|None: the shortest path found by the algorithm as a list of node
+        with the start node at [0] and the end node at [1].
+    """
+    global heuristic_file, ax
+
+    # heapq of all the discovered nodes sorted by their A* score (also called f score)
+    open_set: list = []
     heapq.heappush(open_set, (0, start))
 
-    came_from = {}
+    # key -> node_id,
+    # value -> node_id of the node preceding the key
+    # (= the node someone needs to pass through to access the key id).
+    came_from: dict = {}
 
+    # dict with a node id as key and the cost of the path from the start node to this node as value
     g_score = {node: float("inf") for node in G.nodes}
     g_score[start] = 0
 
+    # dict with a node id as key and the A* score of the node as value
     f_score = {node: float("inf") for node in G.nodes}
     f_score[start] = heuristic(start, goal)
 
+    # set containing already explored nodes. These nodes are removed from the open_set
     explored = set()
 
     # counter to update matplotlib map
@@ -136,24 +154,32 @@ def astar_visual(G, start, goal):
     last_path_line = None
 
     while open_set:
+        # get the node with the smallest A* score
         _, current = heapq.heappop(open_set)
 
+        # write the A* score and heuristic of the node for debugging
         heuristic_file.write(
-            "f: %.02f m - %.02f m - node: %s\n" % (_, heuristic(current, goal), current)
+            "A*: %.02f m - h: %.02f m - node: %s\n"
+            % (_, heuristic(current, goal), current)
         )
+
+        # Check if the goal is reached
+        if current == goal:
+            return reconstruct_path(came_from, current)
+
+        # if the current node was already explored, immediatly proceed to the next one
+        if current in explored:
+            continue
 
         # Mark as explored
         explored.add(current)
 
-        # Goal reached?
-        if current == goal:
-            return reconstruct_path(came_from, current)
-
         # Process neighbors
         for neighbor in G.neighbors(current):
             edge_data = G[current][neighbor][0]
+            # get path cost using currently chosen node
             tentative_g = g_score[current] + edge_data["length"]
-
+            # if score lower, update g_score, f_score and the open set
             if tentative_g < g_score[neighbor]:
                 came_from[neighbor] = current
                 g_score[neighbor] = tentative_g
@@ -164,7 +190,8 @@ def astar_visual(G, start, goal):
         # Visualization update every N iterations
         # ---------------------------------------------
         iteration += 1
-        if iteration % 300 == 0:  # Only update visuals every N loops
+        # Only update visuals every N loops
+        if iteration % 300 == 0:
             # If there was a previously drawn path, recolor it to magenta
             if last_path_line:
                 for line in last_path_line:
@@ -187,20 +214,22 @@ def astar_visual(G, start, goal):
     return None
 
 
+# Get distance to goal for the heuristic (an heuristic should not be greater than the real distance else it can mess up the pathfinding)
 haversine_start_to_goal = float("inf")
 haversine_start_to_goal = heuristic(orig_node, dest_node)
-# Run A* and visualize
+# Run A* with cProfile to capture the time it takes for the algorithm to run
 profiler = cProfile.Profile()
 path = profiler.runcall(astar_visual, G, orig_node, dest_node)
 # path = astar_visual(G, orig_node, dest_node)
 
+# Use io.StringIO to catch the profiler's stream and not display it on the terminal
 s = io.StringIO()
 ps = pstats.Stats(profiler, stream=s)
 ps.print_stats(1)
-
+# Print the first line of the profiler with the number of methods called and time taken by the algorithm
 print("\n" + s.getvalue().strip().split("\n")[0] + "\n")
 
-# Final path highlight
+# Display the final path
 if path:
     x_vals = [node_positions[n][0] for n in path]
     y_vals = [node_positions[n][1] for n in path]
