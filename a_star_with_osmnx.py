@@ -55,11 +55,6 @@ dest_node = osmnx.distance.nearest_nodes(G, X=END_COORD[0], Y=END_COORD[1])
 node_positions = {node: (data["x"], data["y"]) for node, data in G.nodes(data=True)}
 # Without data=True, G.nodes() returns only the node ID
 
-# Variable holding the distance to goal for the heuristic. It is needed because an heuristic
-# should not be greater than the real distance else it can mess up the pathfinding.
-# For now this variable is set to infinity to prevent a problem with haversine() method.
-haversine_start_to_goal = float("inf")
-
 # Draw the base map
 _, ax = osmnx.plot_graph(
     G, show=False, close=False, node_size=0, edge_color="#CCCCCC", bgcolor="white"
@@ -89,17 +84,14 @@ def heuristic(id1, id2):
     Returns:
         float: the straight line distance between the 2 given nodes in meters.
     """
-    global node_positions, haversine_start_to_goal
+    global node_positions
 
     # Reverse the coordinates because harversine uses lat/lon while OSM uses lon/lat
     yNode1, xNode1 = node_positions[id1]
     yNode2, xNode2 = node_positions[id2]
 
     # return 0  # Uncomment to use Dijkstra
-    return min(
-        haversine((xNode1, yNode1), (xNode2, yNode2), unit=Unit.METERS),
-        haversine_start_to_goal,
-    )
+    return haversine((xNode1, yNode1), (xNode2, yNode2), unit=Unit.METERS)
 
 
 def reconstruct_path(came_from, current):
@@ -220,8 +212,6 @@ def astar_visual(G, start, goal) -> list | None:
     return None
 
 
-# Set haversine_start_to_goal to the real value
-haversine_start_to_goal = heuristic(orig_node, dest_node)
 # Run A* with cProfile to capture the time it takes for the algorithm to run
 profiler = cProfile.Profile()
 path = profiler.runcall(astar_visual, G, orig_node, dest_node)
