@@ -90,6 +90,7 @@ def heuristic(id1, id2):
     yNode1, xNode1 = node_positions[id1]
     yNode2, xNode2 = node_positions[id2]
 
+    # return 0  # Uncomment to use Dijkstra
     return min(
         haversine((xNode1, yNode1), (xNode2, yNode2), unit=Unit.METERS),
         haversine_start_to_goal,
@@ -191,7 +192,7 @@ def astar_visual(G, start, goal) -> list | None:
         # ---------------------------------------------
         iteration += 1
         # Only update visuals every N loops
-        if iteration % 300 == 0:
+        if iteration % 1000 == 0:
             # If there was a previously drawn path, recolor it to magenta
             if last_path_line:
                 for line in last_path_line:
