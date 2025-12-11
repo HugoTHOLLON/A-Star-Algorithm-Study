@@ -55,6 +55,11 @@ dest_node = osmnx.distance.nearest_nodes(G, X=END_COORD[0], Y=END_COORD[1])
 node_positions = {node: (data["x"], data["y"]) for node, data in G.nodes(data=True)}
 # Without data=True, G.nodes() returns only the node ID
 
+# Variable holding the distance to goal for the heuristic. It is needed because an heuristic
+# should not be greater than the real distance else it can mess up the pathfinding.
+# For now this variable is set to infinity to prevent a problem with haversine() method.
+haversine_start_to_goal = float("inf")
+
 # Draw the base map
 _, ax = osmnx.plot_graph(
     G, show=False, close=False, node_size=0, edge_color="#CCCCCC", bgcolor="white"
@@ -215,8 +220,7 @@ def astar_visual(G, start, goal) -> list | None:
     return None
 
 
-# Get distance to goal for the heuristic (an heuristic should not be greater than the real distance else it can mess up the pathfinding)
-haversine_start_to_goal = float("inf")
+# Set haversine_start_to_goal to the real value
 haversine_start_to_goal = heuristic(orig_node, dest_node)
 # Run A* with cProfile to capture the time it takes for the algorithm to run
 profiler = cProfile.Profile()
