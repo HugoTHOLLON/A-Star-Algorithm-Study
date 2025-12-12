@@ -48,6 +48,9 @@ END_COORD = (0.7247218, 43.1077682)  # (lon/lat) N26691893 - Saint-Gaudens
 # END_COORD = (4.4041170, 43.8692150)  # (lon/lat) N495652597 - Courbessac (Nîmes)
 # END_COORD = (48.8532677, 2.3478864)  # (lat/lon) N11111197772 - Notre-Dame de Paris
 
+# How many nodes are chosen between each update
+UPDATE_MAP_EVERY_N_STEP = 100
+
 orig_node = osmnx.distance.nearest_nodes(G, X=START_COORD[0], Y=START_COORD[1])
 dest_node = osmnx.distance.nearest_nodes(G, X=END_COORD[0], Y=END_COORD[1])
 
@@ -189,7 +192,7 @@ def astar_visual(G, start, goal) -> list | None:
         # ---------------------------------------------
         iteration += 1
         # Only update visuals every N loops
-        if iteration % 1000 == 0:
+        if iteration % UPDATE_MAP_EVERY_N_STEP == 0:
             # If there was a previously drawn path, recolor it to magenta
             if last_path_line:
                 for line in last_path_line:
